@@ -1,0 +1,36 @@
+#! /usr/bin/env python3.6
+import sys
+from Bio import SeqIO
+
+f = open(sys.argv[1], "r")
+records = list(SeqIO.parse(f, "fasta"))
+some_seq = records[0].seq
+columns = [''] * len(some_seq)
+for i in range(0, len(columns)):
+    for record in records:
+        base = record.seq[i]
+        columns[i] += base
+for e in columns:
+    if e.count('-') / len(e) > 0.5:
+        print('Remove the column')
+    else:
+        bases = list(set(e.replace('-', '')))
+        cnt = 0
+        for i in range(0, len(bases)):
+            basecount = e.count(bases[i])
+            if basecount > 2:
+                print('Change some value')
+            if basecount == 1:
+                cnt += 1
+        if cnt / len(e.replace('-', '')) > 0.5:
+            print('Remove the column')
+
+
+
+#print(output)
+
+#output = ''
+#for e in columns:
+#    output += e
+#    output += '\n'
+#print(output)
