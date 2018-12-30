@@ -1,0 +1,20 @@
+#! /usr/bin/env python
+import argparse
+import dendropy
+import sys
+from dendropy.calculate import treecompare
+
+parser = argparse.ArgumentParser(description='Compare phylogenic trees and get their symmetric difference')
+parser.add_argument('-o', dest='output', action='store', metavar='filename', type=str, default=sys.stdout,
+		    help='output filename. If not specified, output is written to stdout.')
+parser.add_argument('tree1', type=str, default=sys.stdin,
+		     help='file reference for the first tree. If not specified, input will be read from stdin')
+parser.add_argument('tree2', type=str, help='file reference for the second tree. Must be specified')
+args = parser.parse_args()
+
+tns = dendropy.TaxonNamespace()
+tree1 = dendropy.Tree.get_from_path(args.tree1, 'newick', taxon_namespace=tns)
+tree2 = dendropy.Tree.get_from_path(args.tree2, 'newick', taxon_namespace=tns)
+tree1.encode_bipartitions()
+tree2.encode_bipartitions()
+print("Symmetric difference between " + args.tree1 + " and " + args.tree2 + ": " + str(treecompare.symmetric_difference(tree1, tree2)), file=args.output)
