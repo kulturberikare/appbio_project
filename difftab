@@ -1,0 +1,22 @@
+#! /usr/bin/env python
+import argparse
+import sys
+import sqlite3
+
+parser = argparse.ArgumentParser(description='Returns the count of differences in a result file from running the script compare.sh')
+parser.add_argument('infile', action='store', type=str, default=sys.stdin, help='input filename. If not specified, input is read from stdin.')
+args = parser.parse_args()
+
+f = open(args.infile, 'r')
+values = f.read().split('\n')
+f.close()
+values = [val for val in values if val.isnumeric()]
+
+conn = sqlite3.connect('differences.db')
+c = conn.cursor()
+c.execute('CREATE TABLE differences (difference INT)')
+for val in values:
+    cmd = 'INSERT INTO differences VALUES (' + val + ')'
+    c.execute(cmd)
+c.execute('SELECT difference, COUNT(difference) FROM differences GROUP BY difference')
+print(c.fetchall(), file=sys.stdout)

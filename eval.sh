@@ -1,3 +1,4 @@
+# Create trees from sequence files
 echo "Creating dir trees..."
 mkdir trees
 for file in *.msl
@@ -12,4 +13,12 @@ do
     rm -rf $file"_fp"
     echo "Moving tree to trees dir..."
     mv -f $file"_tree" trees/
+done
+
+# Compare acquired trees against reference tree, accumulate distances in a file
+cd trees
+for file in *_tree
+do
+    echo "Comparing "$file" to reference tree and appending to differences..."
+    ./treecompare *.tree $file >> differences
 done
