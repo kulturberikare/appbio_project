@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import argparse
 import sys
+import re
 from Bio import SeqIO
 from Bio.Alphabet import SingleLetterAlphabet
 from Bio.Seq import Seq
@@ -14,20 +15,50 @@ def transpose(lst):
         transposedlst.append(''.join(e))
     return transposedlst
 
+def is_empty(s):
+    '''Checks if a provided string is empty'''
+    return not s
+
+def is_space(s):
+    '''Checks if a provided string is only whitespace, does not require any characters to be present in string'''
+    stripped = s.strip()
+    return not stripped
+
 # Execution
+# Initialize parser and arguments
 parser = argparse.ArgumentParser(description='Filters sequences in a given input file')
 parser.add_argument('input_filename', metavar='fileref', type=str, help='input file reference')
 parser.add_argument('-o', dest='output', action='store', metavar='filename', type=str, default=sys.stdout,
 		    help='output filename. If not specified, output is written to stdout.')
 args = parser.parse_args()
 
-f = open(args.input_filename, "r")
+# Open file and store sequences in a list, then transpose to get columns
+try:
+    f = open(args.input_filename, "r")
+    s = f.read()
+    if is_empty(s) or is_space(s):
+        raise ValueError
+except FileNotFoundError:
+    print('Error: File not found. Please try again.', file=sys.stderr)
+    sys.exit()
+except ValueError:
+    print('Error: Provided file is empty. Try again with another file.', file=sys.stderr)
+    sys.exit()
+f.seek(0)
 records = list(SeqIO.parse(f, "fasta"))
 sequences = []
-for record in records:
-    sequences.append(record.seq)
+try:
+    for record in records:
+        if is_empty(record.seq) or is_space(record.seq):
+            raise ValueError
+        else:
+            sequences.append(record.seq)
+except ValueError:
+    print('Error: Provided sequence file has one or more empty sequences. Please provide another file.', file=sys.stderr)
+    sys.exit()
 columns = transpose(sequences)
 
+# Check if columns fulfill requirements
 output = []
 for column in columns:
     approved = True
@@ -48,8 +79,13 @@ for column in columns:
     if approved:
         output.append(column)
 
+# Transpose approved columns to get the sequences, write to stdout/specified output file
 filtered_sequences = transpose(output)
-for i in range(0, len(records)):
-    records[i].seq = Seq(filtered_sequences[i], SingleLetterAlphabet())
+try:
+    for i in range(0, len(records)):
+        records[i].seq = Seq(filtered_sequences[i], SingleLetterAlphabet())
+except IndexError:
+    print('Error: Sequence file consists of only noisy columns. Please provide another one.', file=sys.stderr)
+    sys.exit()
 SeqIO.write(records, args.output, 'fasta')
 f.close()
