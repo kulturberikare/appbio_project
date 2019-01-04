@@ -2,6 +2,7 @@
 import argparse
 import dendropy
 import sys
+import UserDefinedExceptions as ude
 from dendropy.calculate import treecompare
 
 parser = argparse.ArgumentParser(description='Compare phylogenic trees and get their symmetric difference')
@@ -14,11 +15,19 @@ parser.add_argument('tree1', type=str, default=sys.stdin,
 parser.add_argument('tree2', type=str, help='file reference for the second tree. Must be specified')
 args = parser.parse_args()
 
-tns = dendropy.TaxonNamespace()
-tree1 = dendropy.Tree.get_from_path(args.tree1, 'newick', taxon_namespace=tns)
-tree2 = dendropy.Tree.get_from_path(args.tree2, 'newick', taxon_namespace=tns)
-tree1.encode_bipartitions()
-tree2.encode_bipartitions()
-if args.notext == True:
-    print("Symmetric difference between " + args.tree1 + " and " + args.tree2 + ": ", file=args.output)
-print(treecompare.symmetric_difference(tree1, tree2), file=args.output)
+try:
+    tns = dendropy.TaxonNamespace()
+    try:
+        tree1 = dendropy.Tree.get_from_path(args.tree1, 'newick', taxon_namespace=tns)
+        tree2 = dendropy.Tree.get_from_path(args.tree2, 'newick', taxon_namespace=tns)
+    except:
+        raise ude.TreeError
+    tree1.encode_bipartitions()
+    tree2.encode_bipartitions()
+    if args.notext == True:
+        print("Symmetric difference between " + args.tree1 + " and " + args.tree2 + ": ", file=args.output)
+    print(treecompare.symmetric_difference(tree1, tree2), file=args.output)
+except FileNotFoundError:
+    print('Error: File not found. Please try again.', file=sys.stderr)
+except ude.TreeError:
+    print('Error: Provided file does not contain a tree. Please try again or provide another file.', file=sys.stderr)

@@ -2,6 +2,7 @@
 import argparse
 import sys
 import re
+import UserDefinedExceptions as ude
 from Bio import SeqIO
 from Bio.Alphabet import SingleLetterAlphabet
 from Bio.Seq import Seq
@@ -37,11 +38,11 @@ try:
     f = open(args.input_filename, "r")
     s = f.read()
     if is_empty(s) or is_space(s):
-        raise ValueError
+        raise ude.EmptyError
 except FileNotFoundError:
     print('Error: File not found. Please try again.', file=sys.stderr)
     sys.exit()
-except ValueError:
+except ude.EmptyError:
     print('Error: Provided file is empty. Try again with another file.', file=sys.stderr)
     sys.exit()
 f.seek(0)
@@ -50,12 +51,16 @@ sequences = []
 try:
     for record in records:
         if is_empty(record.seq) or is_space(record.seq):
-            raise ValueError
+            raise ude.EmptyError
         else:
             sequences.append(record.seq)
-except ValueError:
+    if not sequences:
+        raise ude.FastaError
+except ude.EmptyError:
     print('Error: Provided sequence file has one or more empty sequences. Please provide another file.', file=sys.stderr)
     sys.exit()
+except ude.FastaError:
+    print('Error: Provided file is malformed and/or not in Fasta format. Please check or provide another file.', file=sys.stderr)
 columns = transpose(sequences)
 
 # Check if columns fulfill requirements
