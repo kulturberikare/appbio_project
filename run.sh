@@ -7,7 +7,7 @@ mkdir -p filtered_trees
 mkdir -p unfiltered_trees
 mkdir -p count_tables
 
-cd data/
+cd $node/data/
 for folder in */
 do
     echo "Entering dir "$folder"..."
