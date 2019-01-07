@@ -38,11 +38,11 @@ try:
     f = open(args.input_filename, "r")
     s = f.read()
     if is_empty(s) or is_space(s):
-        raise ude.EmptyFileError
+        raise ude.EmptyError
 except FileNotFoundError:
     print('Error: File not found. Please try again.', file=sys.stderr)
     sys.exit()
-except ude.EmptyFileError:
+except ude.EmptyError:
     print('Error: Provided file is empty. Try again with another file.', file=sys.stderr)
     sys.exit()
 f.seek(0)
@@ -51,15 +51,15 @@ sequences = []
 try:
     for record in records:
         if is_empty(record.seq) or is_space(record.seq):
-            raise ude.EmptySeqError
+            raise ude.EmptyError
         else:
             sequences.append(record.seq)
     if not sequences:
-        raise ude.FastaFileError
-except ude.EmptySeqError:
+        raise ude.FastaError
+except ude.EmptyError:
     print('Error: Provided sequence file has one or more empty sequences. Please provide another file.', file=sys.stderr)
     sys.exit()
-except ude.FastaFileError:
+except ude.FastaError:
     print('Error: Provided file is malformed and/or not in Fasta format. Please check or provide another file.', file=sys.stderr)
 columns = transpose(sequences)
 
@@ -79,13 +79,8 @@ for column in columns:
                 approved = True
             if basecount == 1:
                 cnt += 1
-        if cnt / len(column.replace('-', '')) < 0.5 and cnt > 0:
+        if cnt / len(column.replace('-', '')) <= 0.5:
             approved = True
-        else:
-            if len(bases) == 1:
-                approved = True
-            else:
-                approved = False
     if approved:
         output.append(column)
 
