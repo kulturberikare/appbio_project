@@ -1,19 +1,14 @@
-# User-defined exception classes
+# Our own exception classes
 
 class Error(Exception):
     '''Base class for other exceptions'''
     pass
 
-class EmptyFileError(Error):
-    '''Raised when input file is empty or whitespace only'''
+class EmptyError(Error):
+    '''Raised when input is empty'''
     pass
 
-class EmptySeqError(Error):
-    '''Raised when sequence is empty or whitespace only'''
-    pass
-
-class FastaFileError(Error):
-    '''Raised when file is not a Fasta file'''
+class FastaError(Error):
     pass
 
 class TreeError(Error):
