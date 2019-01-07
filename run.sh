@@ -1,6 +1,9 @@
 # Variables
 node=$(pwd)
 
+# Stop execution if error
+set -e
+
 # Create file structure
 mkdir -p results && cd results
 mkdir -p filtered_trees
@@ -8,10 +11,13 @@ mkdir -p unfiltered_trees
 mkdir -p count_tables
 
 cd $node/data/
+start_trees=`date +%s`
 for folder in */
 do
     echo "Entering dir "$folder"..."
     cd $folder
+    echo "Preparatory cleanup..."
+    rm -rf __* *.py denoising *_trees/
     echo "Creating subfolders..."
     mkdir ${folder%/}"_trees"
     mkdir ${folder%/}"_u_trees"
@@ -42,7 +48,7 @@ do
     done
     echo "Copying reference tree to subfolders..."
     cp -r *.tree ${folder%/}"_trees"
-    cp -r *.tree ${folder%/}"_trees"
+    cp -r *.tree ${folder%/}"_u_trees"
     echo "Moving subfolders to results directory..."
     mv -f ${folder%/}"_trees" ../../results/filtered_trees/
     mv -f ${folder%/}"_u_trees" ../../results/unfiltered_trees/
@@ -52,6 +58,8 @@ do
     echo "Exiting "$folder"..."
     cd ..
 done
+end_trees=`date +%s`
+start_tables=`date +%s`
 echo "Entering results directory..."
 cd $node/results/
 for folder in *_trees/
@@ -89,3 +97,8 @@ do
     cd ..
 echo "Done..."
 done
+end_tables=`date +%s`
+runtime_trees=$((end_trees-start_trees))
+runtime_tables=$((end_tables-start_tables))
+echo "Total time spent denoising files: "$runtime_trees" seconds"
+echo "Total time spent creating tables: "$runtime_tables" seconds"
